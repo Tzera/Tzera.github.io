@@ -162,6 +162,306 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-异常的处理" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/11/12/%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86/">异常的处理</a>
+    </h1>
+  
+
+        
+        
+
+<a href="/2020/11/12/%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86/" class="archive-article-date">
+  	<time datetime="2020-11-12T07:10:01.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-12</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="声明抛出异常"><a href="#声明抛出异常" class="headerlink" title="声明抛出异常"></a>声明抛出异常</h1><p>这个体系中的所有类和对象都具备一个独有的特点那就是可抛性，主要体现在：这个体系中的类和对象都可以被throws和throw两个关键字所操作。 </p>
+<p>如果一个方法(中的语句执行时)可能生成某种异常，但是并不能确定如何处理这种异常，则此方法应显示地声明抛出异常，表明该方法将不对这些异常进行处理，而由该方法的调用者负责处理。 </p>
+<p>在方法声明中用throws语句可以声明抛出异常的列表，throws后面的异常类型可以是方法中产生的异常类型，也可以是它的父类。  </p>
+<p>throws是方法可能抛出异常的声明。用在声明方法时，表示该方法可能要抛出异常。异常列表位于方法体之前,可抛出多种类型的异常，每个类型之间用逗号隔开。  </p>
+<p>当某个方法可能会抛出某种异常时用于throws 声明可能抛出的异常，然后交给上层调用它的方法程序处理。  </p>
+<h1 id="throws关键字：异常处理的第一种方式"><a href="#throws关键字：异常处理的第一种方式" class="headerlink" title="throws关键字：异常处理的第一种方式"></a>throws关键字：异常处理的第一种方式</h1><p>作用:当方法内部抛出异常对象的时候,那么我们就必须处理这个异常对象， 可以使用throws关键字处理异常对象,会把异常对象声明抛出给方法的调用者处理(自己不处理,给别人处理),最终交给JVM处理–&gt;中断处理。<br>使用格式:在方法声明时使用  </p>
+<pre><code>[修饰符] 返回值类型 方法名([参数列表])[throws 异常列表]&#123;
+        throw new AAAExcepiton(&quot;产生原因&quot;);
+        throw new BBBExcepiton(&quot;产生原因&quot;);
+        ...
+&#125; </code></pre>
+<hr>
+<p>注意：  </p>
+<ol>
+<li>throws关键字必须写在方法声明处  </li>
+<li>throws关键字后边声明的异常必须是Exception或者是Exception的子类  </li>
+<li>方法内部如果抛出了多个异常对象,那么throws后边必须也声明多个异常<br>如果抛出的多个异常对象有子父类关系,那么直接声明父类异常即可  </li>
+<li>调用了一个声明抛出异常的方法,我们就必须的处理声明的异常<br>要么继续使用throws声明抛出,交给方法的调用者处理,最终交给JVM<br>要么try…catch自己处理异常。  </li>
+</ol>
+<hr>
+<p>示例： </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo05Throws</span> </span>&#123;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        FileNotFoundException extends IOException extends Excepiton</span></span><br><span class="line"><span class="comment">        如果抛出的多个异常对象有子父类关系,那么直接声明父类异常即可</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//public static void main(String[] args) throws FileNotFoundException,IOException &#123;</span></span><br><span class="line">    <span class="comment">//public static void main(String[] args) throws IOException &#123;</span></span><br><span class="line">    <span class="comment">//一步步简化最终只声明原来各异常的父类异常 Exception</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">        readFile方法是一个声明抛出异常的方法，我们调用该方法时要处理声明的异常，此处采用继续声明的方式.</span></span><br><span class="line"><span class="comment">        用快捷键Alt+Enter选择第一个Add Exception to method signature</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        readFile(<span class="string">&quot;c:\\a.tx&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;后续代码&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        定义一个方法,对传递的文件路径进行合法性判断</span></span><br><span class="line"><span class="comment">        如果路径不是&quot;c:\\a.txt&quot;,那么我们就抛出文件找不到异常对象,告知方法的调用者</span></span><br><span class="line"><span class="comment">        注意:</span></span><br><span class="line"><span class="comment">            FileNotFoundException是编译异常,抛出了编译异常,就必须处理这个异常</span></span><br><span class="line"><span class="comment">            可以使用throws继续声明抛出FileNotFoundException这个异常对象,让方法的调用者处理</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">readFile</span><span class="params">(String fileName)</span> <span class="keyword">throws</span> FileNotFoundException,IOException</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!fileName.equals(<span class="string">&quot;c:\\a.txt&quot;</span>))&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FileNotFoundException(<span class="string">&quot;传递的文件路径不是c:\\a.txt&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">            如果传递的路径,不是.txt结尾</span></span><br><span class="line"><span class="comment">            那么我们就抛出IO异常对象,告知方法的调用者,文件的后缀名不对</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">if</span>(!fileName.endsWith(<span class="string">&quot;.txt&quot;</span>))&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;文件的后缀名不对&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;路径没有问题,读取文件&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="try…catch-异常处理的第二种方式-自己处理异常"><a href="#try…catch-异常处理的第二种方式-自己处理异常" class="headerlink" title="try…catch:异常处理的第二种方式,自己处理异常"></a>try…catch:异常处理的第二种方式,自己处理异常</h1><pre><code>格式:（可通过Alt+Enter选择）  
+ try&#123;
+         可能产生异常的代码
+        &#125;catch(定义一个异常的变量,用来接收try中抛出的异常对象)&#123;
+         异常的处理逻辑,产生异常对象之后,怎么处理异常对象
+           一般在工作中,会把异常的信息记录到一个日志中
+      &#125;
+      ...
+      catch(异常类名 变量名)&#123;
+
+&#125;</code></pre>
+<p>注意:<br>1.try中可能会抛出多个异常对象,那么就可以使用多个catch来处理这些异常对象。<br>2.如果try中产生了异常,那么就会执行catch中的异常处理逻辑,执行完毕catch中的处理逻辑,继续执行try…catch之后的代码。如果try中没有产生异常,那么就不会执行catch中异常的处理逻辑,执行完try中的代码,继续执行try…catch之后的代码。  </p>
+<h2 id="Throwable类中定义了3个异常处理方法"><a href="#Throwable类中定义了3个异常处理方法" class="headerlink" title="Throwable类中定义了3个异常处理方法"></a>Throwable类中定义了3个异常处理方法</h2><p><code>String getMessage()</code>  返回此 throwable 的简短描述。<br><code>String toString()</code>  返回此 throwable 的详细消息字符串。<br><code>void printStackTrace() </code>JVM打印异常对象,默认此方法,打印的异常信息是最全面的。<br>示例： </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo01TryCatch</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            <span class="comment">//可能产生异常的代码</span></span><br><span class="line">            readFile(<span class="string">&quot;d:\\a.tx&quot;</span>);</span><br><span class="line">        &#125;<span class="keyword">catch</span> (IOException e)&#123;<span class="comment">//try中抛出什么异常对象,catch就定义什么异常变量,用来接收这个异常对象</span></span><br><span class="line">    </span><br><span class="line">            <span class="comment">//Throwable类是所有异常类的超类，所以IOException e可以直接使用上述方法         </span></span><br><span class="line">            e.printStackTrace();<span class="comment">//异常的处理逻辑,异常异常对象之后,怎么处理异常对象   </span></span><br><span class="line"></span><br><span class="line">            （其余两种异常处理方法）</span><br><span class="line">            <span class="comment">//System.out.println(e.getMessage());//文件的后缀名不对</span></span><br><span class="line">            <span class="comment">//System.out.println(e.toString());//重写Object类的toString ；java.io.IOException: 文件的后缀名不对</span></span><br><span class="line">            <span class="comment">//System.out.println(e);//java.io.IOException: 文件的后缀名不对（打印结果同上）</span></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;后续代码&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">       如果传递的路径,不是.txt结尾</span></span><br><span class="line"><span class="comment">       那么我们就抛出IO异常对象,告知方法的调用者,文件的后缀名不对</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">readFile</span><span class="params">(String fileName)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(!fileName.endsWith(<span class="string">&quot;.txt&quot;</span>))&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;文件的后缀名不对&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;路径没有问题,读取文件&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="finally代码块"><a href="#finally代码块" class="headerlink" title="finally代码块"></a>finally代码块</h1><p>格式：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">            可能产生异常的代码</span><br><span class="line">        &#125;<span class="keyword">catch</span>(定义一个异常的变量,用来接收<span class="keyword">try</span>中抛出的异常对象)&#123;</span><br><span class="line">            异常的处理逻辑,异常异常对象之后,怎么处理异常对象</span><br><span class="line">            一般在工作中,会把异常的信息记录到一个日志中</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">catch</span>(异常类名 变量名)&#123;</span><br><span class="line"></span><br><span class="line">        &#125;<span class="keyword">finally</span>&#123;</span><br><span class="line">            无论是否出现异常都会执行</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line">注意:</span><br><span class="line">        <span class="number">1.f</span>inally不能单独使用,必须和<span class="keyword">try</span>一起使用</span><br><span class="line">        <span class="number">2.f</span>inally一般用于资源释放(资源回收),无论程序是否出现异常,最后都要资源释放(IO)。</span><br><span class="line">        <span class="number">3.</span>如果<span class="keyword">finally</span>有<span class="keyword">return</span>语句,永远返回<span class="keyword">finally</span>中的结果,避免该情况.</span><br></pre></td></tr></table></figure>
+<h1 id="多异常的捕获处理"><a href="#多异常的捕获处理" class="headerlink" title="多异常的捕获处理"></a>多异常的捕获处理</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span> 多个异常分别处理。</span><br><span class="line">       / <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span>[] arr = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>&#125;;</span><br><span class="line">            System.out.println(arr[<span class="number">3</span>]);<span class="comment">//ArrayIndexOutOfBoundsException: 3</span></span><br><span class="line">        &#125;<span class="keyword">catch</span> (ArrayIndexOutOfBoundsException e)&#123;</span><br><span class="line">            System.out.println(e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            List&lt;Integer&gt; list = List.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line">            System.out.println(list.get(<span class="number">3</span>));<span class="comment">//IndexOutOfBoundsException: Index 3 out-of-bounds for length 3</span></span><br><span class="line">        &#125;<span class="keyword">catch</span> (IndexOutOfBoundsException e)&#123;</span><br><span class="line">            System.out.println(e);</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2.</span> 多个异常一次捕获，多次处理。</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span>[] arr = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>&#125;;</span><br><span class="line">            <span class="comment">//System.out.println(arr[3]);//ArrayIndexOutOfBoundsException: 3</span></span><br><span class="line">            List&lt;Integer&gt; list = List.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line">            System.out.println(list.get(<span class="number">3</span>));<span class="comment">//IndexOutOfBoundsException: Index 3 out-of-bounds for length 3</span></span><br><span class="line">        &#125;<span class="keyword">catch</span> (ArrayIndexOutOfBoundsException e)&#123;</span><br><span class="line">            System.out.println(e);</span><br><span class="line">        &#125;<span class="keyword">catch</span> (IndexOutOfBoundsException e)&#123;</span><br><span class="line">            System.out.println(e);</span><br><span class="line">        &#125;*/</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         一个try多个catch注意事项:</span></span><br><span class="line"><span class="comment">                catch里边定义的异常变量,如果有子父类关系,那么子类的异常变量必须写在上边,否则就会报错</span></span><br><span class="line"><span class="comment">                ArrayIndexOutOfBoundsException extends IndexOutOfBoundsException</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">3.</span> 多个异常一次捕获一次处理。</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span>[] arr = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>&#125;;</span><br><span class="line">            <span class="comment">//System.out.println(arr[3]);//ArrayIndexOutOfBoundsException: 3</span></span><br><span class="line">            List&lt;Integer&gt; list = List.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line">            System.out.println(list.get(<span class="number">3</span>));<span class="comment">//IndexOutOfBoundsException: Index 3 out-of-bounds for length 3</span></span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            System.out.println(e);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<h1 id="子父类异常注意事项"><a href="#子父类异常注意事项" class="headerlink" title="子父类异常注意事项  :"></a>子父类异常注意事项  :</h1><ol>
+<li>如果父类抛出了多个异常,子类重写父类方法时,抛出和父类相同的异常或者是父类异常的子类或者不抛出异常。  </li>
+<li>父类方法没有抛出异常，子类重写父类该方法时也不可抛出异常。此时子类产生该异常，只能捕获处理，不能声明抛出。<br>注意:    父类异常时什么样,子类异常就什么样。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Fu</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show01</span><span class="params">()</span> <span class="keyword">throws</span> NullPointerException,ClassCastException</span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show02</span><span class="params">()</span> <span class="keyword">throws</span> IndexOutOfBoundsException</span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show03</span><span class="params">()</span> <span class="keyword">throws</span> IndexOutOfBoundsException</span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show04</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Zi</span> <span class="keyword">extends</span> <span class="title">Fu</span></span>&#123;</span><br><span class="line">    <span class="comment">//子类重写父类方法时,抛出和父类相同的异常</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show01</span><span class="params">()</span> <span class="keyword">throws</span> NullPointerException,ClassCastException</span>&#123;&#125;</span><br><span class="line">    <span class="comment">//子类重写父类方法时,抛出父类异常的子类</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show02</span><span class="params">()</span> <span class="keyword">throws</span> ArrayIndexOutOfBoundsException</span>&#123;&#125;</span><br><span class="line">    <span class="comment">//子类重写父类方法时,不抛出异常</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show03</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        父类方法没有抛出异常，子类重写父类该方法时也不可抛出异常。</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">//public void show04() throws Exception&#123;&#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//此时子类产生该异常，只能捕获处理，不能声明抛出</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">show04</span><span class="params">()</span>  </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span>  <span class="keyword">new</span> Exception(<span class="string">&quot;编译期异常&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="自定义异常类"><a href="#自定义异常类" class="headerlink" title="自定义异常类"></a>自定义异常类</h1>java提供的异常类,不够我们使用,需要自己定义一些异常类。   <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">格式:</span><br><span class="line">     <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">XXXExcepiton</span> <span class="keyword">extends</span> <span class="title">Exception</span> | <span class="title">RuntimeException</span></span>&#123;</span><br><span class="line">            添加一个空参数的构造方法</span><br><span class="line">            添加一个带异常信息的构造方法</span><br><span class="line">        &#125;</span><br><span class="line">注意:</span><br><span class="line">        <span class="number">1.</span>自定义异常类一般都是以Exception结尾,说明该类是一个异常类</span><br><span class="line">        <span class="number">2.</span>自定义异常类,必须的继承Exception或者RuntimeException</span><br><span class="line">        继承Exception: 那么自定义的异常类就是一个编译期异常,如果方法内部抛出了编译期异常,就必须处理这个异常,要么<span class="keyword">throws</span>,要么<span class="keyword">try</span>...<span class="keyword">catch</span>。</span><br><span class="line">        继承RuntimeException: 那么自定义的异常类就是一个运行期异常,无需处理,交给虚拟机处理(中断处理)。</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RegisterException</span> <span class="keyword">extends</span> /*<span class="title">Exception</span>*/ <span class="title">RuntimeException</span></span>&#123;</span><br><span class="line">    <span class="comment">//添加一个空参数的构造方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RegisterException</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        添加一个带异常信息的构造方法</span></span><br><span class="line"><span class="comment">        查看源码发现,所有的异常类都会有一个带异常信息的构造方法,方法内部会调用父类带异常信息的构造方法,让父类来处理这个异常信息</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RegisterException</span><span class="params">(String message)</span></span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">异常</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/java基础//" class="article-tag-list-link color2">java基础</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/11/12/%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-队列（Queue）的使用" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/11/10/%E9%98%9F%E5%88%97%EF%BC%88Queue%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8/">队列（Queue）的使用</a>
+    </h1>
+  
+
+        
+        
+
+<a href="/2020/11/10/%E9%98%9F%E5%88%97%EF%BC%88Queue%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8/" class="archive-article-date">
+  	<time datetime="2020-11-10T13:37:07.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-10</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="1-队列是一种特殊的线性表，它只允许在表的前端进行删除操作，而在表的后端进行插入操作。"><a href="#1-队列是一种特殊的线性表，它只允许在表的前端进行删除操作，而在表的后端进行插入操作。" class="headerlink" title="1. 队列是一种特殊的线性表，它只允许在表的前端进行删除操作，而在表的后端进行插入操作。"></a>1. 队列是一种特殊的线性表，它只允许在表的前端进行删除操作，而在表的后端进行插入操作。</h2><h2 id="2-LinkedList类实现了Queue接口，因此我们可以把LinkedList当成Queue来用。"><a href="#2-LinkedList类实现了Queue接口，因此我们可以把LinkedList当成Queue来用。" class="headerlink" title="2. LinkedList类实现了Queue接口，因此我们可以把LinkedList当成Queue来用。"></a>2. LinkedList类实现了Queue接口，因此我们可以把LinkedList当成Queue来用。</h2><p>以下实例演示了队列（Queue）的用法 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.LinkedList;</span><br><span class="line"><span class="keyword">import</span> java.util.Queue;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//add()和remove()方法在失败的时候会抛出异常(不推荐)</span></span><br><span class="line">        Queue&lt;String&gt; queue = <span class="keyword">new</span> LinkedList&lt;String&gt;();</span><br><span class="line">        <span class="comment">//添加元素</span></span><br><span class="line">        queue.offer(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">        queue.offer(<span class="string">&quot;b&quot;</span>);</span><br><span class="line">        queue.offer(<span class="string">&quot;c&quot;</span>);</span><br><span class="line">        queue.offer(<span class="string">&quot;d&quot;</span>);</span><br><span class="line">        queue.offer(<span class="string">&quot;e&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span>(String q : queue)&#123;</span><br><span class="line">            System.out.println(q);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;===&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;poll=&quot;</span>+queue.poll()); <span class="comment">//返回第一个元素，并在队列中删除</span></span><br><span class="line">        <span class="keyword">for</span>(String q : queue)&#123;</span><br><span class="line">            System.out.println(q);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;===&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;element=&quot;</span>+queue.element()); <span class="comment">//返回第一个元素 </span></span><br><span class="line">        <span class="keyword">for</span>(String q : queue)&#123;</span><br><span class="line">            System.out.println(q);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;===&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;peek=&quot;</span>+queue.peek()); <span class="comment">//返回第一个元素 </span></span><br><span class="line">        <span class="keyword">for</span>(String q : queue)&#123;</span><br><span class="line">            System.out.println(q);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">``` </span><br><span class="line">以上代码运行输出结果为：</span><br><span class="line">``` java</span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br><span class="line">===</span><br><span class="line">poll=a</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br><span class="line">===</span><br><span class="line">element=b</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br><span class="line">===</span><br><span class="line">peek=b</span><br><span class="line">b</span><br><span class="line">c</span><br><span class="line">d</span><br><span class="line">e</span><br></pre></td></tr></table></figure>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">队列</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/11/10/%E9%98%9F%E5%88%97%EF%BC%88Queue%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-之”字形打印矩阵" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/11/09/%E4%B9%8B%E2%80%9D%E5%AD%97%E5%BD%A2%E6%89%93%E5%8D%B0%E7%9F%A9%E9%98%B5/">之”字形打印矩阵</a>
+    </h1>
+  
+
+        
+        
+
+<a href="/2020/11/09/%E4%B9%8B%E2%80%9D%E5%AD%97%E5%BD%A2%E6%89%93%E5%8D%B0%E7%9F%A9%E9%98%B5/" class="archive-article-date">
+  	<time datetime="2020-11-09T13:39:34.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-09</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p>例如：<br>1　2　3　4<br>5　6　7　8<br>9　7　8　4<br>打印结果为：1，2，5，9，6，8，4，7，7，8，8，4<br>要求：额外空间复杂度为O(1)。<br>代码： </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*  </span></span><br><span class="line"><span class="comment">两个点(tr,tc),(dr,dc)同时从点(0,0)出发，一个先向右移动，后向下移动，另一个先向下移动，后向右移动；</span></span><br><span class="line"><span class="comment">最终两个点会在右下角点相遇；</span></span><br><span class="line"><span class="comment">这样保证了两个点之间的连线始终是我们要打印的路线，即打印两点的连线上的数即可；</span></span><br><span class="line"><span class="comment">而打印的顺序或者方向是交叉的，即一上一下，可以用boolean值表示，每次取反即可。</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">printMatrixZigZag</span><span class="params">(<span class="keyword">int</span>[][] matrix)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> tr = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> tc = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> dr = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> dc = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> endr = matrix.length - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> endc = matrix[<span class="number">0</span>].length - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">boolean</span> fromup1 = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">while</span> (tr != endr) &#123;</span><br><span class="line">            ptintLevel(matrix, tr, tc, dr, dc, fromup1);</span><br><span class="line">            tr = tc == endc ? tr + <span class="number">1</span> : tr;</span><br><span class="line">            tc = tc == endc ? tc : tc + <span class="number">1</span>;</span><br><span class="line">            dr = dr == endr ? dr : dr + <span class="number">1</span>;</span><br><span class="line">            dc = dr == endr ? dc + <span class="number">1</span> : dc;</span><br><span class="line">            fromup1 = !fromup1;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ptintLevel</span><span class="params">(<span class="keyword">int</span>[][] m, <span class="keyword">int</span> tr, <span class="keyword">int</span> tc, <span class="keyword">int</span> dr, <span class="keyword">int</span> dc, <span class="keyword">boolean</span> f)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (f) &#123;</span><br><span class="line">            <span class="keyword">while</span> (tr != dr + <span class="number">1</span>) &#123;</span><br><span class="line">                System.out.print(m[tr++][tc--] + <span class="string">&quot; &quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (dr != tr - <span class="number">1</span>) &#123;</span><br><span class="line">                System.out.print(m[dr--][dc++] + <span class="string">&quot; &quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">矩阵</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/算法//" class="article-tag-list-link color3">算法</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/11/09/%E4%B9%8B%E2%80%9D%E5%AD%97%E5%BD%A2%E6%89%93%E5%8D%B0%E7%9F%A9%E9%98%B5/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-使用printf和String-format格式化输出" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -174,10 +474,13 @@
   
 
         
-        <a href="/2020/11/08/%E4%BD%BF%E7%94%A8printf%E5%92%8CString-format%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%87%BA/" class="archive-article-date">
+        
+
+<a href="/2020/11/08/%E4%BD%BF%E7%94%A8printf%E5%92%8CString-format%E6%A0%BC%E5%BC%8F%E5%8C%96%E8%BE%93%E5%87%BA/" class="archive-article-date">
   	<time datetime="2020-11-08T12:07:08.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-08</time>
 </a>
         
+
       </header>
     
     <div class="article-entry" itemprop="articleBody">
@@ -400,10 +703,13 @@
   
 
         
-        <a href="/2020/11/07/%E7%BB%A7%E6%89%BF%E4%B8%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95%E7%9A%84%E8%AE%BF%E9%97%AE%E7%89%B9%E7%82%B9/" class="archive-article-date">
+        
+
+<a href="/2020/11/07/%E7%BB%A7%E6%89%BF%E4%B8%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95%E7%9A%84%E8%AE%BF%E9%97%AE%E7%89%B9%E7%82%B9/" class="archive-article-date">
   	<time datetime="2020-11-07T12:22:59.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-07</time>
 </a>
         
+
       </header>
     
     <div class="article-entry" itemprop="articleBody">
@@ -498,10 +804,13 @@
   
 
         
-        <a href="/2020/11/07/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" class="archive-article-date">
+        
+
+<a href="/2020/11/07/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" class="archive-article-date">
   	<time datetime="2020-11-07T03:22:41.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-07</time>
 </a>
         
+
       </header>
     
     <div class="article-entry" itemprop="articleBody">
@@ -563,10 +872,13 @@
   
 
         
-        <a href="/2020/11/06/hello-world/" class="archive-article-date">
+        
+
+<a href="/2020/11/06/hello-world/" class="archive-article-date">
   	<time datetime="2020-11-06T13:17:05.908Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-11-06</time>
 </a>
         
+
       </header>
     
     <div class="article-entry" itemprop="articleBody">
@@ -647,6 +959,21 @@
       	</div>
     </div>
   </div>
+
+
+
+
+        <!-- 不蒜子统计 -->
+        <span id="busuanzi_container_site_pv">
+                本站总访问量<span id="busuanzi_value_site_pv"></span>次
+        </span>
+        <span class="post-meta-divider">|</span>
+        <span id="busuanzi_container_site_uv" style='display:none'>
+                本站访客数<span id="busuanzi_value_site_uv"></span>人
+        </span>
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
 </footer>
     </div>
     <script>
@@ -792,6 +1119,18 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">TCP协议</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">JDBC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">数据库连接池</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">随笔</a>
               </li>
             
             <div class="clearfix"></div>
