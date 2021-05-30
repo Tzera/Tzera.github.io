@@ -43,7 +43,7 @@
 <div class="intrude-less">
 	<header id="header" class="inner">
 		<a href="/" class="profilepic">
-			<img src="/assets/006dd8J5gy1ghi53atjswj31hc0u0tnd.jpg" class="js-avatar">
+			<img src="/assets/_20201107105701.jpg" class="js-avatar">
 		</a>
 		<hgroup>
 		  <h1 class="header-author"><a href="/">海笑</a></h1>
@@ -109,7 +109,7 @@
 	<div class="intrude-less">
 		<header id="header" class="inner">
 			<div class="profilepic">
-				<img src="/assets/006dd8J5gy1ghi53atjswj31hc0u0tnd.jpg" class="js-avatar">
+				<img src="/assets/_20201107105701.jpg" class="js-avatar">
 			</div>
 			<hgroup>
 			  <h1 class="header-author js-header-author">海笑</h1>
@@ -161,107 +161,6 @@
           </div>
           <div id="js-content" class="content-ll">
             
-  
-    <article id="post-MyISAM-和-InnoDB-的区别" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/04/12/MyISAM-%E5%92%8C-InnoDB-%E7%9A%84%E5%8C%BA%E5%88%AB/">MyISAM 和 InnoDB 的区别</a>
-    </h1>
-  
-
-        
-        
-<a href="/2021/04/12/MyISAM-%E5%92%8C-InnoDB-%E7%9A%84%E5%8C%BA%E5%88%AB/" class="archive-article-date">
-  	<time datetime="2021-04-12T08:32:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-12</time>
-</a>
-        
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="MyISAM-和-InnoDB-的区别"><a href="#MyISAM-和-InnoDB-的区别" class="headerlink" title="MyISAM 和 InnoDB 的区别"></a>MyISAM 和 InnoDB 的区别</h3><p><img src="https://i.loli.net/2021/04/12/xCZkUcluJaXpP1H.png"></p>
-<p><strong>1.是否支持行级锁</strong></p>
-<p>MyISAM 只有表级锁(table-level locking)，而 InnoDB 支持行级锁(row-level locking)和表级锁,默认为行级锁。</p>
-<p>也就说，MyISAM 一锁就是锁住了整张表，这在并发写的情况下是多么滴憨憨啊！这也是为什么 InnoDB 在并发写的时候，性能更牛皮了！</p>
-<p><strong>2.是否支持事务</strong></p>
-<p>MyISAM 不提供事务支持。</p>
-<p>InnoDB 提供事务支持，具有提交(commit)和回滚(rollback)事务的能力。</p>
-<p><strong>3.是否支持外键</strong></p>
-<p>MyISAM 不支持，而 InnoDB 支持。</p>
-<p>🌈 拓展一下：</p>
-<p>一般我们也是不建议在数据库层面使用外键的，应用层面可以解决。不过，这样会对数据的一致性造成威胁。具体要不要使用外键还是要根据你的项目来决定。</p>
-<p><strong>4.是否支持数据库异常崩溃后的安全恢复</strong></p>
-<p>MyISAM 不支持，而 InnoDB 支持。</p>
-<p>使用 InnoDB 的数据库在异常崩溃后，数据库重新启动的时候会保证数据库恢复到崩溃前的状态。这个恢复的过程依赖于 <code>redo log</code> 。</p>
-<p>🌈 拓展一下：</p>
-<ul>
-<li>MySQL InnoDB 引擎使用 <strong>redo log(重做日志)</strong> 保证事务的<strong>持久性</strong>，使用 <strong>undo log(回滚日志)</strong> 来保证事务的<strong>原子性</strong>。</li>
-</ul>
-<ul>
-<li>MySQL InnoDB 引擎通过 <strong>锁机制</strong>、<strong>MVCC</strong> 等手段来保证事务的隔离性（ 默认支持的隔离级别是 <strong><code>REPEATABLE-READ</code></strong> ）。</li>
-<li>保证了事务的持久性、原子性、隔离性之后，一致性才能得到保障。</li>
-</ul>
-<p><strong>5.是否支持 MVCC</strong></p>
-<p>MyISAM 不支持，而 InnoDB 支持。</p>
-<p>讲真，这个对比有点废话，毕竟 MyISAM 连行级锁都不支持。</p>
-<p>MVCC 可以看作是行级锁的一个升级，可以有效减少加锁操作，提供性能。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/数据库//" class="article-tag-list-link color4">数据库</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2021/04/12/MyISAM-%E5%92%8C-InnoDB-%E7%9A%84%E5%8C%BA%E5%88%AB/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
   
     <article id="post-java 对数据库访问 spring的JdbcTemplate和apache的Dbutils" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
@@ -1507,6 +1406,136 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2020/12/15/%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-转换流" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/12/14/%E8%BD%AC%E6%8D%A2%E6%B5%81/">转换流</a>
+    </h1>
+  
+
+        
+        
+<a href="/2020/12/14/%E8%BD%AC%E6%8D%A2%E6%B5%81/" class="archive-article-date">
+  	<time datetime="2020-12-14T11:55:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-12-14</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="字符编码和字符集"><a href="#字符编码和字符集" class="headerlink" title="字符编码和字符集"></a>字符编码和字符集</h1><h2 id="字符编码"><a href="#字符编码" class="headerlink" title="字符编码"></a>字符编码</h2><p>计算机中储存的信息都是用二进制数表示的，而我们在屏幕上看到的数字、英文、标点符号、汉字等字符是二进制数转换之后的结果。按照某种规则，将字符存储到计算机中，称为编码 。反之，将存储在计算机中的二进制数按照 某种规则解析显示出来，称为解码 。比如说，按照A规则存储，同样按照A规则解析，那么就能显示正确的文本符号。反之，按照A规则存储，再按照B规则解析，就会导致乱码现象。  </p>
+<ul>
+<li><strong>字符编码</strong>  <code>Character Encoding</code>: 就是一套自然语言的字符与二进制数之间的对应规则。<h2 id="字符集"><a href="#字符集" class="headerlink" title="字符集"></a>字符集</h2></li>
+<li><strong>字符集</strong> <code>Charset</code> ：也叫编码表。是一个系统支持的所有字符的集合，包括各国家文字、标点符号、图形符 号、数字等。<br>计算机要准确的存储和识别各种字符集符号，需要进行字符编码，一套字符集必然至少有一套字符编码。常见字符 集有ASCII字符集、GBK字符集、Unicode字符集等。<h1 id="编码引出的问题"><a href="#编码引出的问题" class="headerlink" title="编码引出的问题"></a>编码引出的问题</h1>在IDEA中，使用 FileReader 读取项目中的文本文件。由于IDEA的设置，都是默认的 UTF-8 编码，所以没有任何问题。但是，当读取Windows系统中创建的文本文件时，由于Windows系统的默认是GBK编码，就会出现乱码。<h1 id="InputStreamReader类"><a href="#InputStreamReader类" class="headerlink" title="InputStreamReader类"></a>InputStreamReader类</h1><code>java.io.InputStreamReader extends Reader</code><br>转换流 <code>java.io.InputStreamReader</code> ，是<code>Reader</code>的子类，是从字节流到字符流的桥梁。它读取字节，并<strong>使用指定的字符集将其解码为字符</strong>。它的字符集可以由名称指定，也可以接受平台的默认字符集。<h2 id="继承自父类的共性成员方法"><a href="#继承自父类的共性成员方法" class="headerlink" title="继承自父类的共性成员方法:"></a>继承自父类的共性成员方法:</h2></li>
+<li><code>int read()</code> 读取单个字符并返回。</li>
+<li><code>int read(char[] cbuf)</code>一次读取多个字符,将字符读入数组。</li>
+<li><code>void close() </code>关闭该流并释放与之关联的所有资源。<h2 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法:"></a>构造方法:</h2></li>
+<li><code>InputStreamReader(InputStream in)</code> 创建一个使用默认字符集的 InputStreamReader。</li>
+<li><code>InputStreamReader(InputStream in, String charsetName)</code> 创建使用指定字符集的 InputStreamReader。<h2 id="参数"><a href="#参数" class="headerlink" title="参数:"></a>参数:</h2></li>
+<li><code>InputStream in</code>:字节输入流,用来读取文件中保存的字节</li>
+<li><code>String charsetName</code>:指定的编码表名称,不区分大小写,可以是utf-8/UTF-8,gbk/GBK,…不指定默认使用UTF-8<h2 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤:"></a>使用步骤:</h2></li>
+</ul>
+<ol>
+<li>创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称</li>
+<li>使用InputStreamReader对象中的方法read读取文件</li>
+<li>释放资源<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项:"></a>注意事项:</h2></li>
+</ol>
+<ul>
+<li><strong>构造方法中指定的编码表名称要和文件的编码相同,否则会发生乱码</strong>。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo03InputStreamReader</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//read_utf_8();</span></span><br><span class="line">        read_gbk();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        使用InputStreamReader读取GBK格式的文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_gbk</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称</span></span><br><span class="line">        <span class="comment">//InputStreamReader isr = new InputStreamReader(new FileInputStream(&quot;10_IO\\gbk.txt&quot;),&quot;UTF-8&quot;);//???</span></span><br><span class="line">        InputStreamReader isr = <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\gbk.txt&quot;</span>),<span class="string">&quot;GBK&quot;</span>);<span class="comment">//你好</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.使用InputStreamReader对象中的方法read读取文件</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>((len = isr.read())!=-<span class="number">1</span>)&#123;</span><br><span class="line">            System.out.println((<span class="keyword">char</span>)len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//3.释放资源</span></span><br><span class="line">        isr.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        使用InputStreamReader读取UTF-8格式的文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_utf_8</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称</span></span><br><span class="line">        <span class="comment">//InputStreamReader isr = new InputStreamReader(new FileInputStream(&quot;10_IO\\utf_8.txt&quot;),&quot;UTF-8&quot;);</span></span><br><span class="line">        InputStreamReader isr = <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\utf_8.txt&quot;</span>));<span class="comment">//不指定默认使用UTF-8</span></span><br><span class="line">        <span class="comment">//2.使用InputStreamReader对象中的方法read读取文件</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>((len = isr.read())!=-<span class="number">1</span>)&#123;</span><br><span class="line">            System.out.println((<span class="keyword">char</span>)len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//3.释放资源</span></span><br><span class="line">        isr.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="OutputStreamWriter类"><a href="#OutputStreamWriter类" class="headerlink" title="OutputStreamWriter类"></a>OutputStreamWriter类</h1><code>java.io.OutputStreamWriter extends Writer</code><br>转换流 <code>java.io.OutputStreamWriter</code> ，是<code>Writer</code>的子类，是从字符流到字节流的桥梁。<strong>使用指定的字符集将字符编码为字节</strong>。它的字符集可以由名称指定，也可以接受平台的默认字符集。<h2 id="继续自父类的共性成员方法"><a href="#继续自父类的共性成员方法" class="headerlink" title="继续自父类的共性成员方法:"></a>继续自父类的共性成员方法:</h2></li>
+<li><code>void write(int c)</code> 写入单个字符。</li>
+<li><code>void write(char[] cbuf)</code>写入字符数组。</li>
+<li><code>abstract  void write(char[] cbuf, int off, int len)</code>写入字符数组的某一部分,off数组的开始索引,len写的字符个数。</li>
+<li><code>void write(String str)</code>写入字符串。</li>
+<li><code>void write(String str, int off, int len)</code> 写入字符串的某一部分,off字符串的开始索引,len写的字符个数。</li>
+<li><code>void flush()</code>刷新该流的缓冲。</li>
+<li><code>void close()</code> 关闭此流，但要先刷新它。<h2 id="构造方法-1"><a href="#构造方法-1" class="headerlink" title="构造方法:"></a>构造方法:</h2></li>
+<li><code>OutputStreamWriter(OutputStream out)</code>创建使用默认字符编码的 OutputStreamWriter。</li>
+<li><code>OutputStreamWriter(OutputStream out, String charsetName)</code> 创建使用指定字符集的 OutputStreamWriter。<h2 id="参数-1"><a href="#参数-1" class="headerlink" title="参数:"></a>参数:</h2></li>
+<li><code>OutputStream out</code>:字节输出流,可以用来写转换之后的字节到文件中</li>
+<li><code>String charsetName</code>:指定的编码表名称,不区分大小写,可以是utf-8/UTF-8,gbk/GBK,…不指定默认使用UTF-8<h2 id="使用步骤-1"><a href="#使用步骤-1" class="headerlink" title="使用步骤:"></a>使用步骤:</h2></li>
+</ul>
+<ol>
+<li>创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称</li>
+<li>使用OutputStreamWriter对象中的方法write,把字符转换为字节存储缓冲区中(编码)</li>
+<li>使用OutputStreamWriter对象中的方法flush,把内存缓冲区中的字节刷新到文件中(使用字节流写字节的过程)</li>
+<li>释放资源<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo02OutputStreamWriter</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//write_utf_8();</span></span><br><span class="line">        write_gbk();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">       使用转换流OutputStreamWriter写GBK格式的文件</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">write_gbk</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称</span></span><br><span class="line">        OutputStreamWriter osw = <span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\gbk.txt&quot;</span>),<span class="string">&quot;GBK&quot;</span>);</span><br><span class="line">        <span class="comment">//2.使用OutputStreamWriter对象中的方法write,把字符转换为字节存储缓冲区中(编码)</span></span><br><span class="line">        osw.write(<span class="string">&quot;你好&quot;</span>);</span><br><span class="line">        <span class="comment">//3.使用OutputStreamWriter对象中的方法flush,把内存缓冲区中的字节刷新到文件中(使用字节流写字节的过程)</span></span><br><span class="line">        osw.flush();</span><br><span class="line">        <span class="comment">//4.释放资源</span></span><br><span class="line">        osw.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        使用转换流OutputStreamWriter写UTF-8格式的文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">write_utf_8</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称</span></span><br><span class="line">        <span class="comment">//OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(&quot;10_IO\\utf_8.txt&quot;),&quot;utf-8&quot;);</span></span><br><span class="line">        OutputStreamWriter osw = <span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\utf_8.txt&quot;</span>));<span class="comment">//不指定默认使用UTF-8</span></span><br><span class="line">        <span class="comment">//2.使用OutputStreamWriter对象中的方法write,把字符转换为字节存储缓冲区中(编码)</span></span><br><span class="line">        osw.write(<span class="string">&quot;你好&quot;</span>);</span><br><span class="line">        <span class="comment">//3.使用OutputStreamWriter对象中的方法flush,把内存缓冲区中的字节刷新到文件中(使用字节流写字节的过程)</span></span><br><span class="line">        osw.flush();</span><br><span class="line">        <span class="comment">//4.释放资源</span></span><br><span class="line">        osw.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="练习：转换文件编码"><a href="#练习：转换文件编码" class="headerlink" title="练习：转换文件编码"></a>练习：转换文件编码</h1><h2 id="将GBK编码的文本文件，转换为UTF-8编码的文本文件。"><a href="#将GBK编码的文本文件，转换为UTF-8编码的文本文件。" class="headerlink" title="将GBK编码的文本文件，转换为UTF-8编码的文本文件。"></a><strong>将GBK编码的文本文件，转换为UTF-8编码的文本文件。</strong></h2><h2 id="分析"><a href="#分析" class="headerlink" title="分析:"></a>分析:</h2></li>
+<li>创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称GBK</li>
+<li>创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称UTF-8</li>
+<li>使用InputStreamReader对象中的方法read读取文件</li>
+<li>使用OutputStreamWriter对象中的方法write,把读取的数据写入到文件中</li>
+<li>释放资源<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo04Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称GBK</span></span><br><span class="line">        InputStreamReader isr = <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\我是GBK格式的文本.txt&quot;</span>),<span class="string">&quot;GBK&quot;</span>);</span><br><span class="line">        <span class="comment">//2.创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称UTF-8</span></span><br><span class="line">        OutputStreamWriter osw = <span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\我是utf_8格式的文件.txt&quot;</span>),<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">        <span class="comment">//3.使用InputStreamReader对象中的方法read读取文件</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>((len = isr.read())!=-<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="comment">//4.使用OutputStreamWriter对象中的方法write,把读取的数据写入到文件中</span></span><br><span class="line">            osw.write(len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//5.释放资源</span></span><br><span class="line">        osw.close();</span><br><span class="line">        isr.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">转换流</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/java基础//" class="article-tag-list-link color2">java基础</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/12/14/%E8%BD%AC%E6%8D%A2%E6%B5%81/">展开全文 >></a>
         </p>
       
 
