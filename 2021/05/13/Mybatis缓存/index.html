@@ -19,7 +19,7 @@
 <meta property="og:image" content="https://i.loli.net/2021/05/13/kHpilTYGPC6I3Xx.png">
 <meta property="og:image" content="https://i.loli.net/2021/05/13/bCMpJIkxSytqPNh.png">
 <meta property="article:published_time" content="2021-05-13T12:46:27.000Z">
-<meta property="article:modified_time" content="2021-05-14T01:22:21.540Z">
+<meta property="article:modified_time" content="2021-05-14T12:33:19.285Z">
 <meta property="article:author" content="海笑">
 <meta property="article:tag" content="缓存">
 <meta name="twitter:card" content="summary">
@@ -213,7 +213,7 @@
 <p>如果数据库信息和一级缓存信息不一致时如何做到同步呢？ </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 测试缓存的同步</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testClearlCache</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="comment">//1.根据id查询用户</span></span><br><span class="line">    User user1 = userDao.findById(<span class="number">41</span>);</span><br><span class="line">    System.out.println(user1);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//2.更新用户信息</span></span><br><span class="line">    user1.setUsername(<span class="string">&quot;update user clear cache&quot;</span>);</span><br><span class="line">    user1.setAddress(<span class="string">&quot;北京市海淀区&quot;</span>);</span><br><span class="line">    userDao.updateUser(user1);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//3.再次查询id为41的用户</span></span><br><span class="line">    User user2 = userDao.findById(<span class="number">41</span>);</span><br><span class="line">    System.out.println(user2);</span><br><span class="line"></span><br><span class="line">    System.out.println(user1 == user2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>由于调用了update方法，一级缓存已经被清空了，所以第二次查询时，不会从缓存中获取，而是再次发起了一次新的查询。</p>
+<p><strong>由于调用了update方法，一级缓存已经被清空了，所以第二次查询时，不会从缓存中获取，而是再次发起了一次新的查询。</strong></p>
 <h2 id="Mybatis-二级缓存"><a href="#Mybatis-二级缓存" class="headerlink" title="Mybatis 二级缓存"></a><strong>Mybatis</strong> <strong>二级缓存</strong></h2><blockquote>
 <p>二级缓存是 mapper 映射级别的缓存，多个 SqlSession 去操作同一个 Mapper 映射的 sql 语句，多个SqlSession 可以共用二级缓存，二级缓存是跨 SqlSession 的。</p>
 </blockquote>
@@ -232,7 +232,7 @@
 <h2 id="二级缓存测试"><a href="#二级缓存测试" class="headerlink" title="二级缓存测试"></a><strong>二级缓存测试</strong></h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testFirstLevelCache</span><span class="params">()</span></span>&#123;</span><br><span class="line">    SqlSession sqlSession1 = factory.openSession();</span><br><span class="line">    IUserDao dao1 = sqlSession1.getMapper(IUserDao.class);</span><br><span class="line">    User user1 = dao1.findById(<span class="number">41</span>);</span><br><span class="line">    System.out.println(user1);</span><br><span class="line">    sqlSession1.close();<span class="comment">//一级缓存消失</span></span><br><span class="line"></span><br><span class="line">    SqlSession sqlSession2 = factory.openSession();</span><br><span class="line">    IUserDao dao2 = sqlSession2.getMapper(IUserDao.class);</span><br><span class="line">    User user2 = dao2.findById(<span class="number">41</span>);</span><br><span class="line">    System.out.println(user2);</span><br><span class="line">    sqlSession2.close();</span><br><span class="line"></span><br><span class="line">    System.out.println(user1 == user2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p>经过上面的测试，我们发现执行了两次查询，并且在执行第一次查询后，我们关闭了一级缓存，<strong>再去执行第二次查询时，我们发现并没有对数据库发出 sql 语句</strong>，所以此时的数据就只能是来自于我们所说的二级缓存。</p>
+<p>经过上面的测试，我们发现执行了两次查询，并且在执行第一次查询后，我们<strong>关闭了一级缓存</strong>，<strong>再去执行第二次查询时，我们发现并没有对数据库发出 sql 语句</strong>，所以此时的数据就只能是来自于我们所说的二级缓存。</p>
 <p>打印结果为false，这是因为二级缓存中存放的是数据而不是对象，虽然没有发起新的查询，但却创建了新的对象，谁来用就把数据拿过来，创建一个新的用户，把数据填充到新的用户对象里。</p>
 </blockquote>
 
@@ -500,15 +500,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">DBUtils</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">File类</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">HTTP</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">字节流</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -516,7 +512,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">随笔</a>
+                <a href="javascript:void(0)" class="js-tag color5">HTTP</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -524,7 +520,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Lambda表达式</a>
+                <a href="javascript:void(0)" class="js-tag color3">随笔</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -532,7 +528,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">动态SQL</a>
+                <a href="javascript:void(0)" class="js-tag color5">Lambda表达式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">字节流</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -540,15 +540,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">动态SQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Mybatis</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Servlet</a>
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">Sping JDBC</a>
+                <a href="javascript:void(0)" class="js-tag color1">Junit</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Servlet</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -560,19 +568,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">JdbcTemplate DBUtils</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">注解</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">url-pattern匹配</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">xml</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">格式化输出</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">矩阵</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">xml</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -588,7 +600,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">AOP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">字符流</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">格式化输出</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -600,15 +620,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">TCP协议</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">索引</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">线程安全</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">TCP协议</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">转换流</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">线程安全解决</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -624,19 +652,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">线程安全解决</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">转换流</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">队列</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>
