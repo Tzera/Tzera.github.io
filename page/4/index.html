@@ -162,6 +162,330 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-分库分表" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/04/16/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">分库分表</a>
+    </h1>
+  
+
+        
+        
+<a href="/2021/04/16/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" class="archive-article-date">
+  	<time datetime="2021-04-16T01:27:22.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-16</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="为什么要分库分表？"><a href="#为什么要分库分表？" class="headerlink" title="为什么要分库分表？"></a>为什么要分库分表？</h1><p>数据库中的数据量不一定是可控的，在未进行分库分表的情况下，随着时间和业务的发展，库中的表会越来越多，表中的数据量也会越来越大，相应地，数据操作，增删改查的开销也会越来越大；另外，由于无法进行分布式式部署，而一台服务器的资源（CPU、磁盘、内存、IO等）是有限的，最终数据库所能承载的数据量、数据处理能力都将遭遇瓶颈。<br>举个分库分表的简单例子∶ 假设有一张表是记录用户购买信息的订单表order，由于order表记录数太多，我门将折分成256张表。 拆分的记录根据user id%256取得对应的表进行存储，前台应用则根据对应的user id%256，找到对应订单存储的表进行访问。那么分表以后，假设我们想要查询user id为257的用户对应的订单信息，则对应的SQL语句如下∶ select*from order 1where user id=257;其中， order 1是根据257%256=1计算得出。</p>
+<h1 id="如何分库分表？"><a href="#如何分库分表？" class="headerlink" title="如何分库分表？"></a>如何分库分表？</h1><h3 id="垂直切分"><a href="#垂直切分" class="headerlink" title="垂直切分"></a>垂直切分</h3><p>即将表按照功能模块、关系密切程度划分出来，部署到不同的库上。例如，我们会建立定义数据库workDB、商品数据库payDB、用户数据库userDB、日志数据库logDB等，分别用于存储项目数据定义表、商品定义表、用户数据表、日志数据表等。</p>
+<blockquote>
+<p>说明：垂直拆分适合业务之间耦合度非常低的系统，拆分后业务清晰，拆分规则明确，对系统影响较小。</p>
+</blockquote>
+<h3 id="水平拆分"><a href="#水平拆分" class="headerlink" title="水平拆分"></a>水平拆分</h3><p>当一个表中的数据量过大时，我们可以把该表的数据按照某种规则，例如userID散列，进行划分，然后存储到多个结构相同的表，和不同的库上。例如，我们的userDB中的用户数据表中，每一个表的数据量都很大，就可以把userDB切分为结构相同的多个userDB：part0DB、part1DB等，再将userDB上的用户数据表userTable，切分为很多userTable：userTable0、userTable1等，然后将这些表按照一定的规则存储到多个userDB上。</p>
+<h1 id="如何选择？"><a href="#如何选择？" class="headerlink" title="如何选择？"></a>如何选择？</h1><p>应该使用哪一种方式来实施数据库分库分表，这要看数据库中数据量的瓶颈所在，并综合项目的业务类型进行考虑。<br>如果数据库是因为表太多而造成海量数据，并且项目的各项业务逻辑划分清晰、低耦合，那么规则简单明了、容易实施的垂直切分必是首选。<br>而如果数据库中的表并不多，但单表的数据量很大、或数据热度很高，这种情况之下就应该选择水平切分，水平切分比垂直切分要复杂一些，它将原本逻辑上属于一体的数据进行了物理分割，除了在分割时要对分割的粒度做好评估，考虑数据平均和负载平均，后期也将对项目人员及应用程序产生额外的数据管理负担。</p>
+<h1 id="分库分表产生的问题"><a href="#分库分表产生的问题" class="headerlink" title="分库分表产生的问题"></a>分库分表产生的问题</h1><h3 id="①事务问题"><a href="#①事务问题" class="headerlink" title="①事务问题"></a>①事务问题</h3><p>当更新内容同时分布在不同库中，不可避免会带来跨库事务问题。跨分片事务也是分布式事务，没有简单的方案，一般可使用”XA协议”和”两阶段提交”处理。</p>
+<p>分布式事务能最大限度保证了数据库操作的原子性。但在提交事务时需要协调多个节点，推后了提交事务的时间点，延长了事务的执行时间。导致事务在访问共享资源时发生冲突或死锁的概率增高。随着数据库节点的增多，这种趋势会越来越严重，从而成为系统在数据库层面上水平扩展的枷锁</p>
+<h3 id="②-跨库跨表的join问题。"><a href="#②-跨库跨表的join问题。" class="headerlink" title="② 跨库跨表的join问题。"></a>② 跨库跨表的join问题。</h3><p>在执行了分库分表之后，难以避免会将原本逻辑关联性很强的数据划分到不同的表、不同的库上，这时，表的关联操作将受到限制，我们无法join位于不同分库的表，也无法join分表粒度不同的表，结果原本一次查询能够完成的业务，可能需要多次查询才能完成。</p>
+<blockquote>
+<p>我们可以将原来的连接分解成多个单表查询，然后在用户程序中进行连接。</p>
+</blockquote>
+<h3 id="③ID唯一性"><a href="#③ID唯一性" class="headerlink" title="③ID唯一性"></a>③ID唯一性</h3><p>当我们进行分库分表的拆分之后，如果继续使用原来的表自增的方式显然最终查询出来的结果会出现id重复问题。</p>
+<h4 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a>解决方法：</h4><p><strong>1）UUID</strong></p>
+<p>   使用uuid作为主键是最简单的方案，缺点也很明显，uuid长度太长，占据的空间比较大，作为索引并且基于索引的查询性能上面会有一定的影响。</p>
+<blockquote>
+<p>UUID全称：Universally Unique Identifier，即通用唯一识别码。是一个由4个连字号(-)将32个字节长的字符串分隔后生成的字符串，总共36个字节长。比如：550e8400-e29b-41d4-a716-446655440000</p>
+<p> UUID是让分布式系统中的所有元素都能有唯一的辨识信息，而不要要通过中央控制端来做辨识信息的指定。如此一来，每个人都可以创建不与其他人冲突的UUID。在这样的情况下，就不需考虑数据库创建时的名称重复问题。目前最广泛应用的UUID，是微软公司的全局唯一标识符（GUID），而其他重要的应用，则有Linux ext2/ext3文件系统、LULS加密分区、GNOME、KDE、Mac OS X等等。</p>
+</blockquote>
+<p><strong>2）Sequence表</strong></p>
+<p>在数据库中建立一个Sequence表该表包含table_name和next两个字段，每当需要为某个表的新纪录生成ID时就从Sequence表中取出对应表的nextid，并将nextid的值加1后更新到数据库中以备下次使用。此方案也较简单，但同样缺点明显：所有插入数据库当中的数据，都要访问这张表，这张表很容易成为系统瓶颈。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `SEQUENCE` (  </span><br><span class="line">    `table_name` varchar(<span class="number">18</span>) NOT NULL,  </span><br><span class="line">    `nextid` bigint(<span class="number">20</span>) NOT NULL,  </span><br><span class="line">    <span class="function">PRIMARY <span class="title">KEY</span> <span class="params">(`table_name`)</span>  </span></span><br><span class="line"><span class="function">) ENGINE</span>=InnoDB</span><br></pre></td></tr></table></figure>
+
+<p><strong>3) Twitter的分布式id算法Snowflake (分布式ID生成器)</strong></p>
+<p>其主要算法的核心就是生成long型的ID,共64位，第一位未使用，41bit的毫秒级时间，5bitdatacenter标志位，5bit机器码，12bit作为毫秒内序列号。该算法每秒能产生26万个id，这样的好处是，整体上按照时间自增排序，并且整个分布式系统内不会产生ID碰撞，并且效率较高。</p>
+<p><strong>4）为每个分片指定一个ID范围</strong></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/数据库//" class="article-tag-list-link color4">数据库</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/04/16/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-索引" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/04/12/%E7%B4%A2%E5%BC%95/">索引</a>
+    </h1>
+  
+
+        
+        
+<a href="/2021/04/12/%E7%B4%A2%E5%BC%95/" class="archive-article-date">
+  	<time datetime="2021-04-12T11:07:18.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-12</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是索引"><a href="#什么是索引" class="headerlink" title="什么是索引?"></a>什么是索引?</h2><p><strong>索引是一种用于快速查询和检索数据的数据结构。常见的索引结构有: B 树， B+树和 Hash。</strong></p>
+<p>索引的作用就相当于目录的作用。打个比方: 我们在查字典的时候，如果没有目录，那我们就只能一页一页的去找我们需要查的那个字，速度很慢。如果有目录了，我们只需要先去目录里查找字的位置，然后直接翻到那一页就行了。</p>
+<h2 id="为什么要用索引-索引的优缺点分析"><a href="#为什么要用索引-索引的优缺点分析" class="headerlink" title="为什么要用索引?索引的优缺点分析"></a>为什么要用索引?索引的优缺点分析</h2><h3 id="索引的优点"><a href="#索引的优点" class="headerlink" title="索引的优点"></a>索引的优点</h3><p><strong>可以大大加快 数据的检索速度（大大减少的检索的数据量）, 这也是创建索引的最主要的原因。毕竟大部分系统的读请求总是大于写请求的。</strong> 另外，通过创建唯一性索引，可以保证数据库表中每一行数据的唯一性。</p>
+<h3 id="索引的缺点"><a href="#索引的缺点" class="headerlink" title="索引的缺点"></a>索引的缺点</h3><ol>
+<li><strong>创建索引和维护索引需要耗费许多时间</strong>：当对表中的数据进行增删改的时候，如果数据有索引，那么索引也需要动态的修改，会降低 SQL 执行效率。</li>
+<li><strong>占用物理存储空间</strong> ：索引需要使用物理文件存储，也会耗费一定空间。</li>
+</ol>
+<h3 id="什么时候该用索引？"><a href="#什么时候该用索引？" class="headerlink" title="什么时候该用索引？"></a>什么时候该用索引？</h3><ol>
+<li>主键自动建立唯一索引</li>
+<li>在经常用在连接（join）的列上，这些列主要是一些外键，可以加快连接的速度</li>
+<li>在经常需要根据范围搜索的列上创建索引，因为索引已经排序，其指定的范围是连续的；</li>
+<li>频繁作为查询条件（经常 where）的字段应该创建索引</li>
+<li>查询中经常（OrderBy）排序的字段（因为索引已经排序，这样查询可以利用索引的排序，加快排序查询时间）</li>
+<li>查询中统计（Count）或者分组（Groupby）的字段；</li>
+</ol>
+<h2 id="B-树和-B-树区别"><a href="#B-树和-B-树区别" class="headerlink" title="B 树和 B+树区别"></a>B 树和 B+树区别</h2><ul>
+<li>B 树的所有节点既存放 键(key) 也存放 数据(data);而 B+树只有叶子节点存放 key 和 data，其他内节点只存放 key。</li>
+<li>B 树的叶子节点都是独立的;B+树的叶子节点有一条引用链指向与它相邻的叶子节点。</li>
+<li>B 树的检索的过程相当于对范围内的每个节点的关键字做二分查找，可能还没有到达叶子节点，检索就结束了。而 B+树的检索效率就很稳定了，任何查找都是从根节点到叶子节点的过程，叶子节点的顺序检索很明显。</li>
+</ul>
+<p><img src="https://i.loli.net/2021/04/12/xXHoJAqcmwG8Sbh.png"></p>
+<h2 id="Hash-索引和-B-树索引优劣分析"><a href="#Hash-索引和-B-树索引优劣分析" class="headerlink" title="Hash 索引和 B+树索引优劣分析"></a>Hash 索引和 B+树索引优劣分析</h2><p><strong>Hash 索引定位快</strong></p>
+<p>Hash 索引指的就是 Hash 表，最大的优点就是能够在很短的时间内，根据 Hash 函数定位到数据所在的位置，这是 B+树所不能比的。</p>
+<p><strong>Hash 冲突问题</strong></p>
+<p>知道 HashMap 或 HashTable 的同学，相信都知道它们最大的缺点就是 Hash 冲突了。不过对于数据库来说这还不算最大的缺点。</p>
+<p><strong>Hash 索引不支持顺序和范围查询(Hash 索引不支持顺序和范围查询是它最大的缺点。</strong></p>
+<p>试想一种情况:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM tb1 WHERE id &lt; 500;Copy to clipboardErrorCopied</span><br></pre></td></tr></table></figure>
+
+<p>B+树是有序的，在这种范围查询中，优势非常大，直接遍历比 500 小的叶子节点就够了。而 Hash 索引是根据 hash 算法来定位的，难不成还要把 1 - 499 的数据，每个都进行一次 hash 计算来定位吗?这就是 Hash 最大的缺点了。</p>
+<h3 id="hash-的查找时间复杂度是-O-1-比-B-的-O-logn-查找时间更短，为什么索引不用hash？"><a href="#hash-的查找时间复杂度是-O-1-比-B-的-O-logn-查找时间更短，为什么索引不用hash？" class="headerlink" title="hash 的查找时间复杂度是 O(1)比 B+的 O(logn)查找时间更短，为什么索引不用hash？"></a>hash 的查找时间复杂度是 O(1)比 B+的 O(logn)查找时间更短，为什么索引不用hash？</h3><p>（可以从 B+树索引的有序性，叶节点被双向链表连接，方便支持范围查找，以及分批加载至内存这几个方面回答）</p>
+<p>​    这和业务场景有关，如果只查找一个值的话，hash 是一个很好的选择，单数据库经常会选择多条，这时候由于 B+树索引有序，并且又有链表相连，它的查询效率比 hash 就快很多了。而且数据库中的索引一般是在磁盘上，数据量大的情况可能无法一次装入内存，B+树的设计可以允许数据分批加载，同时树的高度较低，提高查找效率。</p>
+<h3 id="为什么不用红黑树？"><a href="#为什么不用红黑树？" class="headerlink" title="为什么不用红黑树？"></a>为什么不用红黑树？</h3><p>（可以从内存，以及树深度和 IO 次数方面讨论这个问题。）</p>
+<p>红黑树必须存在内存里的，数据库表太大了，存不进去。<br>在大规模数据存储的时候，红黑树（二叉查找树）往往出现由于树的深度过大而造成磁盘 IO<br>读写过于频繁，进而导致效率低下的情况。B 树可以有多个子女，从几十到上千，可以降低<br>树的高度。<br>磁盘 IO 代价主要花费在查找所需的柱面上，树的深度过大会造成磁盘 IO 频繁读写。根据磁<br>盘查找存取的次数往往由树的高度所决定，红黑树查找一个节点最多要查 logN 层，每一层<br>都是一个内存页。虽然你只是想找一个节点，但硬盘必须一次读一个页，那么一共 logN 次<br>IO，消耗太大</p>
+<h3 id="为什么不用-B-树？"><a href="#为什么不用-B-树？" class="headerlink" title="为什么不用 B 树？"></a>为什么不用 B 树？</h3><p>（可以从叶节点是否存数据，占用内存空间大小和是否支持范围查询这三个方面解释。 ）</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">索引</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/数据库//" class="article-tag-list-link color4">数据库</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/04/12/%E7%B4%A2%E5%BC%95/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-MyISAM-和-InnoDB-的区别" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/04/12/MyISAM-%E5%92%8C-InnoDB-%E7%9A%84%E5%8C%BA%E5%88%AB/">MyISAM 和 InnoDB 的区别</a>
+    </h1>
+  
+
+        
+        
+<a href="/2021/04/12/MyISAM-%E5%92%8C-InnoDB-%E7%9A%84%E5%8C%BA%E5%88%AB/" class="archive-article-date">
+  	<time datetime="2021-04-12T08:32:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-12</time>
+</a>
+        
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="MyISAM-和-InnoDB-的区别"><a href="#MyISAM-和-InnoDB-的区别" class="headerlink" title="MyISAM 和 InnoDB 的区别"></a>MyISAM 和 InnoDB 的区别</h3><p><img src="https://i.loli.net/2021/04/12/xCZkUcluJaXpP1H.png"></p>
+<p><strong>1.是否支持行级锁</strong></p>
+<p>MyISAM 只有表级锁(table-level locking)，而 InnoDB 支持行级锁(row-level locking)和表级锁,默认为行级锁。</p>
+<p>也就说，MyISAM 一锁就是锁住了整张表，这在并发写的情况下是多么滴憨憨啊！这也是为什么 InnoDB 在并发写的时候，性能更牛皮了！</p>
+<p><strong>2.是否支持事务</strong></p>
+<p>MyISAM 不提供事务支持。</p>
+<p>InnoDB 提供事务支持，具有提交(commit)和回滚(rollback)事务的能力。</p>
+<p><strong>3.是否支持外键</strong></p>
+<p>MyISAM 不支持，而 InnoDB 支持。</p>
+<p>🌈 拓展一下：</p>
+<p>一般我们也是不建议在数据库层面使用外键的，应用层面可以解决。不过，这样会对数据的一致性造成威胁。具体要不要使用外键还是要根据你的项目来决定。</p>
+<p><strong>4.是否支持数据库异常崩溃后的安全恢复</strong></p>
+<p>MyISAM 不支持，而 InnoDB 支持。</p>
+<p>使用 InnoDB 的数据库在异常崩溃后，数据库重新启动的时候会保证数据库恢复到崩溃前的状态。这个恢复的过程依赖于 <code>redo log</code> 。</p>
+<p>🌈 拓展一下：</p>
+<ul>
+<li>MySQL InnoDB 引擎使用 <strong>redo log(重做日志)</strong> 保证事务的<strong>持久性</strong>，使用 <strong>undo log(回滚日志)</strong> 来保证事务的<strong>原子性</strong>。</li>
+</ul>
+<ul>
+<li>MySQL InnoDB 引擎通过 <strong>锁机制</strong>、<strong>MVCC</strong> 等手段来保证事务的隔离性（ 默认支持的隔离级别是 <strong><code>REPEATABLE-READ</code></strong> ）。</li>
+<li>保证了事务的持久性、原子性、隔离性之后，一致性才能得到保障。</li>
+</ul>
+<p><strong>5.是否支持 MVCC</strong></p>
+<p>MyISAM 不支持，而 InnoDB 支持。</p>
+<p>讲真，这个对比有点废话，毕竟 MyISAM 连行级锁都不支持。</p>
+<p>MVCC 可以看作是行级锁的一个升级，可以有效减少加锁操作，提供性能。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/数据库//" class="article-tag-list-link color4">数据库</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/04/12/MyISAM-%E5%92%8C-InnoDB-%E7%9A%84%E5%8C%BA%E5%88%AB/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-java 对数据库访问 spring的JdbcTemplate和apache的Dbutils" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1219,355 +1543,9 @@
 
 
   
-    <article id="post-打印流" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/12/15/%E6%89%93%E5%8D%B0%E6%B5%81/">打印流</a>
-    </h1>
-  
-
-        
-        
-<a href="/2020/12/15/%E6%89%93%E5%8D%B0%E6%B5%81/" class="archive-article-date">
-  	<time datetime="2020-12-15T07:39:38.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-12-15</time>
-</a>
-        
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/12/15/%E6%89%93%E5%8D%B0%E6%B5%81/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-序列化流" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/12/15/%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81/">序列化流</a>
-    </h1>
-  
-
-        
-        
-<a href="/2020/12/15/%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81/" class="archive-article-date">
-  	<time datetime="2020-12-15T02:59:57.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-12-15</time>
-</a>
-        
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>Java 提供了一种对象<strong>序列化</strong>的机制。用一个字节序列可以表示一个对象，该字节序列包含该对象的数据 、 对象的类型和对象中存储的属性等信息。字节序列写出到文件之后，相当于文件中<strong>持久保存</strong>了一个对象的信息。<br>反之，该字节序列还可以从文件中读取回来，重构对象，对它进行<strong>反序列化</strong>。 对象的数据 、 对象的类型和对象中存储的数据信息，都可以用来在内存中创建对象。看图理解序列化：  </p>
-<p><img src="https://i.loli.net/2021/04/10/EIVfHnhz5i8vkGJ.jpg"> </p>
-<h1 id="ObjectOutputStream类"><a href="#ObjectOutputStream类" class="headerlink" title="ObjectOutputStream类"></a>ObjectOutputStream类</h1><p><code>objectOutputStream</code>:对象的序列化流。<br><strong>作用</strong>:把对象以流的方式写入到文件中保存。</p>
-<h2 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h2><ul>
-<li><code>ObjectOutputStream(OutputStream out)</code> 创建写入指定 <code>OutputStream</code> 的 <code>ObjectOutputStream</code>。<h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3></li>
-<li><code>outputStream out</code>:字节输出流<h2 id="特有的成员方法"><a href="#特有的成员方法" class="headerlink" title="特有的成员方法"></a>特有的成员方法</h2></li>
-<li><code>void writeObject(Object obj)</code> 将指定的对象写入 <code>ObjectOutputStream</code>。<h2 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤:"></a>使用步骤:</h2></li>
-</ul>
-<ol>
-<li>创建<code>ObjectOutputStream</code>对象,构造方法中传递字节输出流</li>
-<li>使用<code>ObjectOutputStream</code>对象中的方法<code>writeObject</code>,把对象写入到文件中</li>
-<li>释放资源。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo01ObjectOutputStream</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建ObjectOutputStream对象,构造方法中传递字节输出流</span></span><br><span class="line">        ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\person.txt&quot;</span>));</span><br><span class="line">        <span class="comment">//2.使用ObjectOutputStream对象中的方法writeObject,把对象写入到文件中</span></span><br><span class="line">        oos.writeObject(<span class="keyword">new</span> Person(<span class="string">&quot;小美女&quot;</span>,<span class="number">18</span>));</span><br><span class="line">        <span class="comment">//3.释放资源</span></span><br><span class="line">        oos.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="ObjectInputStream类"><a href="#ObjectInputStream类" class="headerlink" title="ObjectInputStream类"></a>ObjectInputStream类</h1><code>ObjectInputStream</code>:对象的反序列化流。  </li>
-</ol>
-<p><strong>作用</strong>:把文件中保存的对象,以流的方式读取出来使用。</p>
-<h2 id="构造方法-1"><a href="#构造方法-1" class="headerlink" title="构造方法:"></a>构造方法:</h2><ul>
-<li><code>ObjectInputStream(InputStream in)</code> 创建从指定 InputStream 读取的 ObjectInputStream。<h3 id="参数-1"><a href="#参数-1" class="headerlink" title="参数:"></a>参数:</h3></li>
-<li><code>InputStream in</code>:字节输入流<h2 id="特有的成员方法-1"><a href="#特有的成员方法-1" class="headerlink" title="特有的成员方法:"></a>特有的成员方法:</h2></li>
-<li><code>Object readObject()</code> :  从 <code>ObjectInputStream</code> 读取对象。<h2 id="使用步骤-1"><a href="#使用步骤-1" class="headerlink" title="使用步骤:"></a>使用步骤:</h2></li>
-</ul>
-<ol>
-<li>创建ObjectInputStream对象,构造方法中传递字节输入流</li>
-<li>使用ObjectInputStream对象中的方法readObject读取保存对象的文件</li>
-<li>释放资源</li>
-<li>使用读取出来的对象(打印)</li>
-</ol>
-<p><strong>readObject方法声明抛出了ClassNotFoundException(class文件找不到异常),当不存在对象的class文件时抛出此异常</strong></p>
-<h2 id="反序列化的前提"><a href="#反序列化的前提" class="headerlink" title="反序列化的前提:"></a>反序列化的前提:</h2><ol>
-<li>类必须实现<code>Serializable</code></li>
-<li>必须存在类对应的class文件<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo02ObjectInputStream</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建ObjectInputStream对象,构造方法中传递字节输入流</span></span><br><span class="line">        ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\person.txt&quot;</span>));</span><br><span class="line">        <span class="comment">//2.使用ObjectInputStream对象中的方法readObject读取保存对象的文件</span></span><br><span class="line">        Object o = ois.readObject();</span><br><span class="line">        <span class="comment">//3.释放资源</span></span><br><span class="line">        ois.close();</span><br><span class="line">        <span class="comment">//4.使用读取出来的对象(打印)</span></span><br><span class="line">        System.out.println(o);</span><br><span class="line">        Person p = (Person)o;</span><br><span class="line">        System.out.println(p.getName()+p.getAge());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-序列化和反序列化的时候,会抛出NotSerializableException没有序列化异常。<br>类通过实现 <code>java.io.Serializable</code> 接口以启用其序列化功能。未实现此接口的类将无法使其任何状态序列化或反序列化。  </li>
-</ol>
-<p><strong>Serializable接口也叫标记型接口</strong><br>要进行序列化和反序列化的类必须实现Serializable接口,就会给类添加一个标记；<br>当我们进行序列化和反序列化的时候,就会检测类上是否有这个标记<br>            有:就可以序列化和反序列化<br>            没有:就会抛出 <code>NotSerializable Exception</code>异常<br>    去市场买肉–&gt;肉上有一个蓝色章(检测合格)–&gt;放心购买–&gt;买回来怎么吃随意.</p>
-<h3 id="static关键字-静态关键字"><a href="#static关键字-静态关键字" class="headerlink" title="static关键字:静态关键字"></a>static关键字:静态关键字</h3><p>静态优先于非静态加载到内存中(静态优先于对象进入到内存中)<br>被static修饰的成员变量不能被序列化的,序列化的都是对象  </p>
-<ul>
-<li><code>private static int age</code>;</li>
-<li><code>oos.writeObject(new Person(&quot;小美女&quot;,18))</code>;</li>
-<li><code>Object o = ois.readObject()</code>;</li>
-<li><code>Person&#123;name=&#39;小美女&#39;, age=0&#125;</code><h3 id="transient关键字-瞬态关键字"><a href="#transient关键字-瞬态关键字" class="headerlink" title="transient关键字:瞬态关键字"></a>transient关键字:瞬态关键字</h3></li>
-</ul>
-<p><strong>被transient修饰成员变量,不能被序列化</strong> </p>
-<ul>
-<li><code>private transient int age</code>;</li>
-<li><code>oos.writeObject(new Person(&quot;小美女&quot;,18))</code>;</li>
-<li><code>Object o = ois.readObject()</code>;</li>
-<li><code>Person&#123;name=&#39;小美女&#39;, age=0&#125;</code><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="comment">//private static int age;</span></span><br><span class="line">    <span class="comment">//private transient int age;</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">(String name, <span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Person&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;name=&#x27;&quot;</span> + name + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&quot;, age=&quot;</span> + age +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(<span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="InvalidClassException异常"><a href="#InvalidClassException异常" class="headerlink" title="InvalidClassException异常"></a>InvalidClassException异常</h2></li>
-</ul>
-<ol>
-<li>编译器（java.exe）会把Person.java文件编译生成Person.class文件。</li>
-<li>Person类实现了Serializable接口，就会根据类的定义给Person.class文件添加一个序列号：<br><code>serialVersionUID=-64726</code></li>
-<li>反序列化的时候，会使用Person.class文件中的序列号和Person.txt文件中的序列化号进行比较，如果是一样的，则反序列化成功；如果不一样 ，则抛出序列化冲突异常：<code>InvalidClassException</code></li>
-<li>修改了类的定义，那么就会给Person.class文件重新编译生成一个新的序列化号：<br><code>serialVersionUID=-32969</code>  <h3 id="那么如何保证在修改类的定义后class文件的序列号不变呢？"><a href="#那么如何保证在修改类的定义后class文件的序列号不变呢？" class="headerlink" title="那么如何保证在修改类的定义后class文件的序列号不变呢？"></a><strong>那么如何保证在修改类的定义后class文件的序列号不变呢？</strong></h3><h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3>可以手动给类添加一个序列号。可序列化类可以通过声明名为“<code>serialVersionUID</code>”的字段（该字段必须是静态（<code>static</code>）、最终（<code>final</code>）的<code>long</code>型字段）显式声明自己的<code>serialVersionUID</code>:<br><code>static final long serialVersionUID=1L;</code><h1 id="练习：序列化集合"><a href="#练习：序列化集合" class="headerlink" title="练习：序列化集合"></a>练习：序列化集合</h1></li>
-</ol>
-<p><strong>当我们想在文件中保存多个对象的时候，可以把多个对象存储到一个集合中，对集合进序列化和反序列化。</strong><br>分析:</p>
-<ol>
-<li>定义一个存储Person对象的ArrayList集合</li>
-<li>往ArrayList集合中存储Person对象</li>
-<li>创建一个序列化流ObjectOutputStream对象</li>
-<li>使用ObjectOutputStream对象中的方法writeObject,对集合进行序列化</li>
-<li>创建一个反序列化ObjectInputStream对象</li>
-<li>使用ObjectInputStream对象中的方法readObject读取文件中保存的集合</li>
-<li>把Object类型的集合转换为ArrayList类型</li>
-<li>遍历ArrayList集合</li>
-<li>释放资源<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo03Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException </span>&#123;</span><br><span class="line">        <span class="comment">//1.定义一个存储Person对象的ArrayList集合</span></span><br><span class="line">        ArrayList&lt;Person&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="comment">//2.往ArrayList集合中存储Person对象</span></span><br><span class="line">        list.add(<span class="keyword">new</span> Person(<span class="string">&quot;张三&quot;</span>,<span class="number">18</span>));</span><br><span class="line">        list.add(<span class="keyword">new</span> Person(<span class="string">&quot;李四&quot;</span>,<span class="number">19</span>));</span><br><span class="line">        list.add(<span class="keyword">new</span> Person(<span class="string">&quot;王五&quot;</span>,<span class="number">20</span>));</span><br><span class="line">        <span class="comment">//3.创建一个序列化流ObjectOutputStream对象</span></span><br><span class="line">        ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\list.txt&quot;</span>));</span><br><span class="line">        <span class="comment">//4.使用ObjectOutputStream对象中的方法writeObject,对集合进行序列化</span></span><br><span class="line">        oos.writeObject(list);</span><br><span class="line">        <span class="comment">//5.创建一个反序列化ObjectInputStream对象</span></span><br><span class="line">        ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\list.txt&quot;</span>));</span><br><span class="line">        <span class="comment">//6.使用ObjectInputStream对象中的方法readObject读取文件中保存的集合</span></span><br><span class="line">        Object o = ois.readObject();</span><br><span class="line">        <span class="comment">//7.把Object类型的集合转换为ArrayList类型</span></span><br><span class="line">        ArrayList&lt;Person&gt; list2 = (ArrayList&lt;Person&gt;)o;</span><br><span class="line">        <span class="comment">//8.遍历ArrayList集合</span></span><br><span class="line">        <span class="keyword">for</span> (Person p : list2) &#123;</span><br><span class="line">            System.out.println(p);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//9.释放资源</span></span><br><span class="line">        ois.close();</span><br><span class="line">        oos.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ol>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">序列化流</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/java基础//" class="article-tag-list-link color2">java基础</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/12/15/%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-转换流" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/12/14/%E8%BD%AC%E6%8D%A2%E6%B5%81/">转换流</a>
-    </h1>
-  
-
-        
-        
-<a href="/2020/12/14/%E8%BD%AC%E6%8D%A2%E6%B5%81/" class="archive-article-date">
-  	<time datetime="2020-12-14T11:55:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-12-14</time>
-</a>
-        
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="字符编码和字符集"><a href="#字符编码和字符集" class="headerlink" title="字符编码和字符集"></a>字符编码和字符集</h1><h2 id="字符编码"><a href="#字符编码" class="headerlink" title="字符编码"></a>字符编码</h2><p>计算机中储存的信息都是用二进制数表示的，而我们在屏幕上看到的数字、英文、标点符号、汉字等字符是二进制数转换之后的结果。按照某种规则，将字符存储到计算机中，称为编码 。反之，将存储在计算机中的二进制数按照 某种规则解析显示出来，称为解码 。比如说，按照A规则存储，同样按照A规则解析，那么就能显示正确的文本符号。反之，按照A规则存储，再按照B规则解析，就会导致乱码现象。  </p>
-<ul>
-<li><strong>字符编码</strong>  <code>Character Encoding</code>: 就是一套自然语言的字符与二进制数之间的对应规则。<h2 id="字符集"><a href="#字符集" class="headerlink" title="字符集"></a>字符集</h2></li>
-<li><strong>字符集</strong> <code>Charset</code> ：也叫编码表。是一个系统支持的所有字符的集合，包括各国家文字、标点符号、图形符 号、数字等。<br>计算机要准确的存储和识别各种字符集符号，需要进行字符编码，一套字符集必然至少有一套字符编码。常见字符 集有ASCII字符集、GBK字符集、Unicode字符集等。<h1 id="编码引出的问题"><a href="#编码引出的问题" class="headerlink" title="编码引出的问题"></a>编码引出的问题</h1>在IDEA中，使用 FileReader 读取项目中的文本文件。由于IDEA的设置，都是默认的 UTF-8 编码，所以没有任何问题。但是，当读取Windows系统中创建的文本文件时，由于Windows系统的默认是GBK编码，就会出现乱码。<h1 id="InputStreamReader类"><a href="#InputStreamReader类" class="headerlink" title="InputStreamReader类"></a>InputStreamReader类</h1><code>java.io.InputStreamReader extends Reader</code><br>转换流 <code>java.io.InputStreamReader</code> ，是<code>Reader</code>的子类，是从字节流到字符流的桥梁。它读取字节，并<strong>使用指定的字符集将其解码为字符</strong>。它的字符集可以由名称指定，也可以接受平台的默认字符集。<h2 id="继承自父类的共性成员方法"><a href="#继承自父类的共性成员方法" class="headerlink" title="继承自父类的共性成员方法:"></a>继承自父类的共性成员方法:</h2></li>
-<li><code>int read()</code> 读取单个字符并返回。</li>
-<li><code>int read(char[] cbuf)</code>一次读取多个字符,将字符读入数组。</li>
-<li><code>void close() </code>关闭该流并释放与之关联的所有资源。<h2 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法:"></a>构造方法:</h2></li>
-<li><code>InputStreamReader(InputStream in)</code> 创建一个使用默认字符集的 InputStreamReader。</li>
-<li><code>InputStreamReader(InputStream in, String charsetName)</code> 创建使用指定字符集的 InputStreamReader。<h2 id="参数"><a href="#参数" class="headerlink" title="参数:"></a>参数:</h2></li>
-<li><code>InputStream in</code>:字节输入流,用来读取文件中保存的字节</li>
-<li><code>String charsetName</code>:指定的编码表名称,不区分大小写,可以是utf-8/UTF-8,gbk/GBK,…不指定默认使用UTF-8<h2 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤:"></a>使用步骤:</h2></li>
-</ul>
-<ol>
-<li>创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称</li>
-<li>使用InputStreamReader对象中的方法read读取文件</li>
-<li>释放资源<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项:"></a>注意事项:</h2></li>
-</ol>
-<ul>
-<li><strong>构造方法中指定的编码表名称要和文件的编码相同,否则会发生乱码</strong>。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo03InputStreamReader</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//read_utf_8();</span></span><br><span class="line">        read_gbk();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        使用InputStreamReader读取GBK格式的文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_gbk</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称</span></span><br><span class="line">        <span class="comment">//InputStreamReader isr = new InputStreamReader(new FileInputStream(&quot;10_IO\\gbk.txt&quot;),&quot;UTF-8&quot;);//???</span></span><br><span class="line">        InputStreamReader isr = <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\gbk.txt&quot;</span>),<span class="string">&quot;GBK&quot;</span>);<span class="comment">//你好</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.使用InputStreamReader对象中的方法read读取文件</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>((len = isr.read())!=-<span class="number">1</span>)&#123;</span><br><span class="line">            System.out.println((<span class="keyword">char</span>)len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//3.释放资源</span></span><br><span class="line">        isr.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        使用InputStreamReader读取UTF-8格式的文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_utf_8</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称</span></span><br><span class="line">        <span class="comment">//InputStreamReader isr = new InputStreamReader(new FileInputStream(&quot;10_IO\\utf_8.txt&quot;),&quot;UTF-8&quot;);</span></span><br><span class="line">        InputStreamReader isr = <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\utf_8.txt&quot;</span>));<span class="comment">//不指定默认使用UTF-8</span></span><br><span class="line">        <span class="comment">//2.使用InputStreamReader对象中的方法read读取文件</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>((len = isr.read())!=-<span class="number">1</span>)&#123;</span><br><span class="line">            System.out.println((<span class="keyword">char</span>)len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//3.释放资源</span></span><br><span class="line">        isr.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="OutputStreamWriter类"><a href="#OutputStreamWriter类" class="headerlink" title="OutputStreamWriter类"></a>OutputStreamWriter类</h1><code>java.io.OutputStreamWriter extends Writer</code><br>转换流 <code>java.io.OutputStreamWriter</code> ，是<code>Writer</code>的子类，是从字符流到字节流的桥梁。<strong>使用指定的字符集将字符编码为字节</strong>。它的字符集可以由名称指定，也可以接受平台的默认字符集。<h2 id="继续自父类的共性成员方法"><a href="#继续自父类的共性成员方法" class="headerlink" title="继续自父类的共性成员方法:"></a>继续自父类的共性成员方法:</h2></li>
-<li><code>void write(int c)</code> 写入单个字符。</li>
-<li><code>void write(char[] cbuf)</code>写入字符数组。</li>
-<li><code>abstract  void write(char[] cbuf, int off, int len)</code>写入字符数组的某一部分,off数组的开始索引,len写的字符个数。</li>
-<li><code>void write(String str)</code>写入字符串。</li>
-<li><code>void write(String str, int off, int len)</code> 写入字符串的某一部分,off字符串的开始索引,len写的字符个数。</li>
-<li><code>void flush()</code>刷新该流的缓冲。</li>
-<li><code>void close()</code> 关闭此流，但要先刷新它。<h2 id="构造方法-1"><a href="#构造方法-1" class="headerlink" title="构造方法:"></a>构造方法:</h2></li>
-<li><code>OutputStreamWriter(OutputStream out)</code>创建使用默认字符编码的 OutputStreamWriter。</li>
-<li><code>OutputStreamWriter(OutputStream out, String charsetName)</code> 创建使用指定字符集的 OutputStreamWriter。<h2 id="参数-1"><a href="#参数-1" class="headerlink" title="参数:"></a>参数:</h2></li>
-<li><code>OutputStream out</code>:字节输出流,可以用来写转换之后的字节到文件中</li>
-<li><code>String charsetName</code>:指定的编码表名称,不区分大小写,可以是utf-8/UTF-8,gbk/GBK,…不指定默认使用UTF-8<h2 id="使用步骤-1"><a href="#使用步骤-1" class="headerlink" title="使用步骤:"></a>使用步骤:</h2></li>
-</ul>
-<ol>
-<li>创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称</li>
-<li>使用OutputStreamWriter对象中的方法write,把字符转换为字节存储缓冲区中(编码)</li>
-<li>使用OutputStreamWriter对象中的方法flush,把内存缓冲区中的字节刷新到文件中(使用字节流写字节的过程)</li>
-<li>释放资源<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo02OutputStreamWriter</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//write_utf_8();</span></span><br><span class="line">        write_gbk();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">       使用转换流OutputStreamWriter写GBK格式的文件</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">write_gbk</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称</span></span><br><span class="line">        OutputStreamWriter osw = <span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\gbk.txt&quot;</span>),<span class="string">&quot;GBK&quot;</span>);</span><br><span class="line">        <span class="comment">//2.使用OutputStreamWriter对象中的方法write,把字符转换为字节存储缓冲区中(编码)</span></span><br><span class="line">        osw.write(<span class="string">&quot;你好&quot;</span>);</span><br><span class="line">        <span class="comment">//3.使用OutputStreamWriter对象中的方法flush,把内存缓冲区中的字节刷新到文件中(使用字节流写字节的过程)</span></span><br><span class="line">        osw.flush();</span><br><span class="line">        <span class="comment">//4.释放资源</span></span><br><span class="line">        osw.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">        使用转换流OutputStreamWriter写UTF-8格式的文件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">write_utf_8</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称</span></span><br><span class="line">        <span class="comment">//OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(&quot;10_IO\\utf_8.txt&quot;),&quot;utf-8&quot;);</span></span><br><span class="line">        OutputStreamWriter osw = <span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\utf_8.txt&quot;</span>));<span class="comment">//不指定默认使用UTF-8</span></span><br><span class="line">        <span class="comment">//2.使用OutputStreamWriter对象中的方法write,把字符转换为字节存储缓冲区中(编码)</span></span><br><span class="line">        osw.write(<span class="string">&quot;你好&quot;</span>);</span><br><span class="line">        <span class="comment">//3.使用OutputStreamWriter对象中的方法flush,把内存缓冲区中的字节刷新到文件中(使用字节流写字节的过程)</span></span><br><span class="line">        osw.flush();</span><br><span class="line">        <span class="comment">//4.释放资源</span></span><br><span class="line">        osw.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="练习：转换文件编码"><a href="#练习：转换文件编码" class="headerlink" title="练习：转换文件编码"></a>练习：转换文件编码</h1><h2 id="将GBK编码的文本文件，转换为UTF-8编码的文本文件。"><a href="#将GBK编码的文本文件，转换为UTF-8编码的文本文件。" class="headerlink" title="将GBK编码的文本文件，转换为UTF-8编码的文本文件。"></a><strong>将GBK编码的文本文件，转换为UTF-8编码的文本文件。</strong></h2><h2 id="分析"><a href="#分析" class="headerlink" title="分析:"></a>分析:</h2></li>
-<li>创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称GBK</li>
-<li>创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称UTF-8</li>
-<li>使用InputStreamReader对象中的方法read读取文件</li>
-<li>使用OutputStreamWriter对象中的方法write,把读取的数据写入到文件中</li>
-<li>释放资源<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo04Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//1.创建InputStreamReader对象,构造方法中传递字节输入流和指定的编码表名称GBK</span></span><br><span class="line">        InputStreamReader isr = <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;10_IO\\我是GBK格式的文本.txt&quot;</span>),<span class="string">&quot;GBK&quot;</span>);</span><br><span class="line">        <span class="comment">//2.创建OutputStreamWriter对象,构造方法中传递字节输出流和指定的编码表名称UTF-8</span></span><br><span class="line">        OutputStreamWriter osw = <span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span> FileOutputStream(<span class="string">&quot;10_IO\\我是utf_8格式的文件.txt&quot;</span>),<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">        <span class="comment">//3.使用InputStreamReader对象中的方法read读取文件</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>((len = isr.read())!=-<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="comment">//4.使用OutputStreamWriter对象中的方法write,把读取的数据写入到文件中</span></span><br><span class="line">            osw.write(len);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//5.释放资源</span></span><br><span class="line">        osw.close();</span><br><span class="line">        isr.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ol>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">转换流</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/java基础//" class="article-tag-list-link color2">java基础</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/12/14/%E8%BD%AC%E6%8D%A2%E6%B5%81/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/3/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/5/">Next &amp;raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/3/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/5/">Next &amp;raquo;</a>
     </nav>
   
 
@@ -1662,11 +1640,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">File类</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">DBUtils</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">File类</a>
+                <a href="javascript:void(0)" class="js-tag color5">HTTP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">字节流</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1674,7 +1660,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">HTTP</a>
+                <a href="javascript:void(0)" class="js-tag color5">Lambda表达式</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1687,14 +1673,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">延迟加载</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Lambda表达式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">字节流</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1714,15 +1692,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">Junit</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Servlet</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">异常</a>
+                <a href="javascript:void(0)" class="js-tag color1">Junit</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1730,11 +1704,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">JdbcTemplate DBUtils</a>
+                <a href="javascript:void(0)" class="js-tag color3">异常</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">注解</a>
+                <a href="javascript:void(0)" class="js-tag color1">JdbcTemplate DBUtils</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1742,11 +1716,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">矩阵</a>
+                <a href="javascript:void(0)" class="js-tag color3">注解</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">xml</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">矩阵</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">格式化输出</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1770,10 +1752,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">格式化输出</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">序列化流</a>
               </li>
              
@@ -1782,23 +1760,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">TCP协议</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">索引</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">线程安全</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">TCP协议</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">转换流</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">线程安全解决</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1814,7 +1784,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">转换流</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">线程安全解决</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">队列</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">动态代理</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">拦截器</a>
               </li>
             
             <div class="clearfix"></div>
